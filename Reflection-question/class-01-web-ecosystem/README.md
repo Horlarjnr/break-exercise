@@ -65,7 +65,8 @@ Why:  Even if a central server experiences failure, the entire player base is fo
 
 
 
-ENGINEERING BEST PRACTICE 
+ENGINEERING BEST PRACTICE
+
 QUESTION 1
 
 Let me start from my own opinion, I totally disagree with that because you might use div everywhere and work but it will lack in some aspect like accesibility, SEO, Code maintainability and developer collaboration. 

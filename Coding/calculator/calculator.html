@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Calculator</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    body { font-family: 'JetBrains Mono', monospace; }
+    .btn-press:active { transform: scale(0.94); }
+  </style>
+</head>
+<body class="min-h-screen bg-zinc-950 flex items-center justify-center p-4">
+
+  <div class="w-full max-w-xs">
+
+
+    <div class="bg-zinc-900 rounded-2xl border border-zinc-800 px-5 py-4 mb-3 min-h-[100px] flex flex-col justify-end items-end gap-1">
+      <span id="expr"  class="text-zinc-500 text-sm min-h-[18px] break-all text-right"></span>
+      <span id="main"  class="text-white text-4xl font-semibold break-all text-right leading-none">0</span>
+      <span id="error" class="text-red-400 text-xs min-h-[16px]"></span>
+    </div>
+
+
+    <div class="grid grid-cols-4 gap-2">
+
+     
+      <button onclick="op('sqrt')" class="btn-press col-span-1 h-12 rounded-xl bg-zinc-800 text-zinc-300 text-xs font-medium hover:bg-zinc-700 transition-colors">√x</button>
+      <button onclick="op('pow')"  class="btn-press col-span-1 h-12 rounded-xl bg-zinc-800 text-zinc-300 text-xs font-medium hover:bg-zinc-700 transition-colors">x<sup>y</sup></button>
+      <button onclick="op('fact')" class="btn-press col-span-1 h-12 rounded-xl bg-zinc-800 text-zinc-300 text-xs font-medium hover:bg-zinc-700 transition-colors">n!</button>
+      <button onclick="op('log')"  class="btn-press col-span-1 h-12 rounded-xl bg-zinc-800 text-zinc-300 text-xs font-medium hover:bg-zinc-700 transition-colors">log</button>
+
+
+      <button onclick="op('AC')"  class="btn-press col-span-1 h-12 rounded-xl bg-red-900/60 text-red-300 text-sm font-semibold hover:bg-red-800/60 transition-colors">AC</button>
+      <button onclick="op('ln')"  class="btn-press col-span-1 h-12 rounded-xl bg-zinc-800 text-zinc-300 text-xs font-medium hover:bg-zinc-700 transition-colors">ln</button>
+      <button onclick="op('pm')"  class="btn-press col-span-1 h-12 rounded-xl bg-zinc-800 text-zinc-300 text-sm hover:bg-zinc-700 transition-colors">+/−</button>
+      <button onclick="op('÷')"   class="btn-press col-span-1 h-12 rounded-xl bg-amber-500/20 text-amber-300 text-lg font-semibold hover:bg-amber-500/30 transition-colors">÷</button>
+
+ 
+      <button onclick="op('7')" class="btn-press h-12 rounded-xl bg-zinc-800/60 text-white text-base hover:bg-zinc-700 transition-colors">7</button>
+      <button onclick="op('8')" class="btn-press h-12 rounded-xl bg-zinc-800/60 text-white text-base hover:bg-zinc-700 transition-colors">8</button>
+      <button onclick="op('9')" class="btn-press h-12 rounded-xl bg-zinc-800/60 text-white text-base hover:bg-zinc-700 transition-colors">9</button>
+      <button onclick="op('×')" class="btn-press h-12 rounded-xl bg-amber-500/20 text-amber-300 text-lg font-semibold hover:bg-amber-500/30 transition-colors">×</button>
+
+  
+      <button onclick="op('4')" class="btn-press h-12 rounded-xl bg-zinc-800/60 text-white text-base hover:bg-zinc-700 transition-colors">4</button>
+      <button onclick="op('5')" class="btn-press h-12 rounded-xl bg-zinc-800/60 text-white text-base hover:bg-zinc-700 transition-colors">5</button>
+      <button onclick="op('6')" class="btn-press h-12 rounded-xl bg-zinc-800/60 text-white text-base hover:bg-zinc-700 transition-colors">6</button>
+      <button onclick="op('−')" class="btn-press h-12 rounded-xl bg-amber-500/20 text-amber-300 text-lg font-semibold hover:bg-amber-500/30 transition-colors">−</button>
+
+    
+      <button onclick="op('1')" class="btn-press h-12 rounded-xl bg-zinc-800/60 text-white text-base hover:bg-zinc-700 transition-colors">1</button>
+      <button onclick="op('2')" class="btn-press h-12 rounded-xl bg-zinc-800/60 text-white text-base hover:bg-zinc-700 transition-colors">2</button>
+      <button onclick="op('3')" class="btn-press h-12 rounded-xl bg-zinc-800/60 text-white text-base hover:bg-zinc-700 transition-colors">3</button>
+      <button onclick="op('+')" class="btn-press h-12 rounded-xl bg-amber-500/20 text-amber-300 text-lg font-semibold hover:bg-amber-500/30 transition-colors">+</button>
+
+      <button onclick="op('0')" class="btn-press col-span-2 h-12 rounded-xl bg-zinc-800/60 text-white text-base hover:bg-zinc-700 transition-colors">0</button>
+      <button onclick="op('.')" class="btn-press h-12 rounded-xl bg-zinc-800/60 text-white text-base hover:bg-zinc-700 transition-colors">.</button>
+      <button onclick="op('=')" class="btn-press h-12 rounded-xl bg-amber-400 text-zinc-950 text-xl font-bold hover:bg-amber-300 transition-colors">=</button>
+
+    </div>
+  </div>
+<script src="script.js"></script>
+</body>
+</html>

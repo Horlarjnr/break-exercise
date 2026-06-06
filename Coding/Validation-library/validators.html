@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Validation Library</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    body { font-family: 'IBM Plex Sans', sans-serif; }
+    code, .mono { font-family: 'IBM Plex Mono', monospace; }
+    .field-input:focus { outline: none; }
+    .fade-in { animation: fadeIn 0.18s ease; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
+  </style>
+</head>
+
+<body class="min-h-screen bg-stone-50 text-stone-800">
+
+
+  <header class="border-b border-stone-200 bg-white px-6 py-5">
+    <div class="max-w-2xl mx-auto flex items-baseline gap-3">
+      <h1 class="text-xl font-semibold mono tracking-tight">validators.js</h1>
+      <span class="text-sm text-stone-400 font-medium">v1.0 — live playground</span>
+    </div>
+  </header>
+
+  <main class="max-w-2xl mx-auto px-6 py-10 space-y-5">
+
+   
+    <div class="field-card bg-white border border-stone-200 rounded-xl overflow-hidden">
+      <div class="px-5 py-3 bg-stone-100 border-b border-stone-200 flex items-center justify-between">
+        <span class="mono text-sm font-semibold text-stone-700">validateEmail</span>
+        <span class="text-xs text-stone-400 mono">RFC 5321</span>
+      </div>
+      <div class="px-5 py-4 space-y-3">
+        <input id="email-input" type="text" placeholder="user@example.com"
+          class="field-input w-full border border-stone-200 rounded-lg px-4 py-2.5 text-sm mono bg-stone-50 focus:bg-white focus:border-stone-400 transition-colors"
+          oninput="runValidator('email')" />
+        <div id="email-result" class="hidden"></div>
+      </div>
+    </div>
+
+
+    <div class="field-card bg-white border border-stone-200 rounded-xl overflow-hidden">
+      <div class="px-5 py-3 bg-stone-100 border-b border-stone-200 flex items-center justify-between">
+        <span class="mono text-sm font-semibold text-stone-700">validatePhone</span>
+        <span class="text-xs text-stone-400 mono">US · intl · local</span>
+      </div>
+      <div class="px-5 py-4 space-y-3">
+        <input id="phone-input" type="text" placeholder="+1 (555) 000-0000 or 555-000-0000"
+          class="field-input w-full border border-stone-200 rounded-lg px-4 py-2.5 text-sm mono bg-stone-50 focus:bg-white focus:border-stone-400 transition-colors"
+          oninput="runValidator('phone')" />
+        <div id="phone-result" class="hidden"></div>
+      </div>
+    </div>
+
+  
+    <div class="field-card bg-white border border-stone-200 rounded-xl overflow-hidden">
+      <div class="px-5 py-3 bg-stone-100 border-b border-stone-200 flex items-center justify-between">
+        <span class="mono text-sm font-semibold text-stone-700">validatePassword</span>
+        <span class="text-xs text-stone-400 mono">strength rules</span>
+      </div>
+      <div class="px-5 py-4 space-y-3">
+        <input id="password-input" type="password" placeholder="Enter a password..."
+          class="field-input w-full border border-stone-200 rounded-lg px-4 py-2.5 text-sm mono bg-stone-50 focus:bg-white focus:border-stone-400 transition-colors"
+          oninput="runValidator('password')" />
+        <div id="password-result" class="hidden"></div>
+     
+
+        <div id="strength-bar" class="hidden space-y-1">
+          <div class="h-1.5 rounded-full bg-stone-100 overflow-hidden">
+            <div id="strength-fill" class="h-full rounded-full transition-all duration-300 w-0"></div>
+          </div>
+          <div id="strength-label" class="text-xs mono text-stone-400"></div>
+        </div>
+
+        <ul id="pw-rules" class="hidden grid grid-cols-2 gap-1 pt-1">
+          <li data-rule="length"  class="rule-item text-xs mono flex items-center gap-1.5 text-stone-400">
+            <span class="rule-dot w-1.5 h-1.5 rounded-full bg-stone-300 inline-block"></span>≥ 8 characters
+          </li>
+          <li data-rule="upper"   class="rule-item text-xs mono flex items-center gap-1.5 text-stone-400">
+            <span class="rule-dot w-1.5 h-1.5 rounded-full bg-stone-300 inline-block"></span>Uppercase letter
+          </li>
+          <li data-rule="lower"   class="rule-item text-xs mono flex items-center gap-1.5 text-stone-400">
+            <span class="rule-dot w-1.5 h-1.5 rounded-full bg-stone-300 inline-block"></span>Lowercase letter
+          </li>
+          <li data-rule="digit"   class="rule-item text-xs mono flex items-center gap-1.5 text-stone-400">
+            <span class="rule-dot w-1.5 h-1.5 rounded-full bg-stone-300 inline-block"></span>Number
+          </li>
+          <li data-rule="special" class="rule-item text-xs mono flex items-center gap-1.5 text-stone-400">
+            <span class="rule-dot w-1.5 h-1.5 rounded-full bg-stone-300 inline-block"></span>Special char
+          </li>
+        </ul>
+      </div>
+    </div>
+
+   
+    <div class="field-card bg-white border border-stone-200 rounded-xl overflow-hidden">
+      <div class="px-5 py-3 bg-stone-100 border-b border-stone-200 flex items-center justify-between">
+        <span class="mono text-sm font-semibold text-stone-700">validateURL</span>
+        <span class="text-xs text-stone-400 mono">http · https</span>
+      </div>
+      <div class="px-5 py-4 space-y-3">
+        <input id="url-input" type="text" placeholder="https://example.com/path?q=1"
+          class="field-input w-full border border-stone-200 rounded-lg px-4 py-2.5 text-sm mono bg-stone-50 focus:bg-white focus:border-stone-400 transition-colors"
+          oninput="runValidator('url')" />
+        <div id="url-result" class="hidden"></div>
+      </div>
+    </div>
+
+
+    <div class="field-card bg-white border border-stone-200 rounded-xl overflow-hidden">
+      <div class="px-5 py-3 bg-stone-100 border-b border-stone-200 flex items-center justify-between">
+        <span class="mono text-sm font-semibold text-stone-700">validateDate</span>
+        <span class="text-xs text-stone-400 mono">YYYY-MM-DD</span>
+      </div>
+      <div class="px-5 py-4 space-y-3">
+        <input id="date-input" type="text" placeholder="2024-12-31"
+          class="field-input w-full border border-stone-200 rounded-lg px-4 py-2.5 text-sm mono bg-stone-50 focus:bg-white focus:border-stone-400 transition-colors"
+          oninput="runValidator('date')" />
+        <div id="date-result" class="hidden"></div>
+      </div>
+    </div>
+
+
+    <div class="bg-stone-900 text-stone-100 rounded-xl p-5 space-y-2">
+      <p class="mono text-xs text-stone-400 font-semibold uppercase tracking-wider mb-3">Return shape</p>
+      <pre class="mono text-sm leading-relaxed text-stone-200">// success
+{ valid: true,  error: null }
+
+// failure
+{ valid: false, error: "Descriptive message" }</pre>
+    </div>
+
+  </main>
+
+  <script>
+
+   
+    const ok  = ()    => ({ valid: true,  error: null });
+    const err = (msg) => ({ valid: false, error: msg  });
+
+    
+    function validateEmail(value) {
+      if (!value || value.trim() === '')
+        return err('Email is required');
+
+      const trimmed = value.trim();
+
+    
+      const parts = trimmed.split('@');
+      if (parts.length !== 2)
+        return err('Email must contain exactly one @ symbol');
+
+      const [local, domain] = parts;
+
+      if (local.length === 0)
+        return err('Email is missing the local part (before @)');
+      if (local.length > 64)
+        return err('Local part (before @) must be 64 characters or fewer');
+
+     
+      if (/^\.|\.$/.test(local))
+        return err('Local part must not start or end with a dot');
+      if (/\.\./.test(local))
+        return err('Local part must not contain consecutive dots');
+      if (!/^[a-zA-Z0-9!#$%&'*+/=?^_`{|}~.\-]+$/.test(local))
+        return err('Local part contains invalid characters');
+
+   
+      if (domain.length === 0)
+        return err('Email is missing the domain part (after @)');
+      if (domain.length > 255)
+        return err('Domain is too long');
+      if (!/^[a-zA-Z0-9.\-]+$/.test(domain))
+        return err('Domain contains invalid characters');
+      if (!domain.includes('.'))
+        return err('Domain must include at least one dot (e.g. example.com)');
+      if (/^\.|\.$/.test(domain) || /\.\./.test(domain))
+        return err('Domain has invalid dot placement');
+
+      const tld = domain.split('.').pop();
+      if (!tld || tld.length < 2)
+        return err('Domain must end with a valid TLD (e.g. .com, .org)');
+
+      return ok();
+    }
+
+   
+    function validatePhone(value) {
+      if (!value || value.trim() === '')
+        return err('Phone number is required');
+
+      const v = value.trim();
+
+    
+      const digitsOnly = v.replace(/\D/g, '');
+
+   
+      const patterns = [
+        /^\+1[\s\-]?\(?\d{3}\)?[\s\-]?\d{3}[\s\-]?\d{4}$/,   
+        /^\(?\d{3}\)?[\s.\-]?\d{3}[\s.\-]?\d{4}$/,            
+        /^\+\d{1,3}[\s\-]?\d{4,14}$/,                          
+      ];
+
+      const matched = patterns.some(p => p.test(v));
+
+      if (!matched)
+        return err('Phone format not recognised — try (555) 000-0000 or +1 555 000 0000');
+
+      if (digitsOnly.length < 7)
+        return err('Phone number is too short');
+      if (digitsOnly.length > 15)
+        return err('Phone number is too long (max 15 digits per E.164)');
+
+      return ok();
+    }
+
+    function validatePassword(value) {
+      if (!value)
+        return err('Password is required');
+
+      const rules = [
+        { id: 'length',  test: v => v.length >= 8,          msg: 'at least 8 characters' },
+        { id: 'upper',   test: v => /[A-Z]/.test(v),        msg: 'one uppercase letter' },
+        { id: 'lower',   test: v => /[a-z]/.test(v),        msg: 'one lowercase letter' },
+        { id: 'digit',   test: v => /[0-9]/.test(v),        msg: 'one number' },
+        { id: 'special', test: v => /[^A-Za-z0-9]/.test(v), msg: 'one special character' },
+      ];
+
+      const failed = rules.filter(r => !r.test(value));
+
+      if (failed.length > 0) {
+        const missing = failed.map(r => r.msg).join(', ');
+        return { valid: false, error: `Password must contain: ${missing}`, _rules: rules.map(r => ({ ...r, passed: r.test(value) })) };
+      }
+
+      return { ...ok(), _rules: rules.map(r => ({ ...r, passed: true })) };
+    }
+
+ 
+    function validateURL(value) {
+      if (!value || value.trim() === '')
+        return err('URL is required');
+
+      const v = value.trim();
+
+
+      if (!/^https?:\/\//i.test(v))
+        return err('URL must start with http:// or https://');
+
+
+      let parsed;
+      try { parsed = new URL(v); }
+      catch (_) { return err('URL structure is invalid'); }
+
+      if (!parsed.hostname || parsed.hostname.length === 0)
+        return err('URL is missing a hostname');
+
+   
+      if (!parsed.hostname.includes('.') && parsed.hostname !== 'localhost')
+        return err('Hostname must include a domain (e.g. example.com)');
+
+      if (parsed.hostname.length > 253)
+        return err('Hostname is too long');
+
+      return ok();
+    }
+
+   
+    function validateDate(value) {
+      if (!value || value.trim() === '')
+        return err('Date is required');
+
+      const v = value.trim();
+
+ 
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(v))
+        return err('Date must be in YYYY-MM-DD format');
+
+      const [year, month, day] = v.split('-').map(Number);
+
+      if (year < 1000 || year > 9999)
+        return err('Year must be between 1000 and 9999');
+      if (month < 1 || month > 12)
+        return err('Month must be between 01 and 12');
+
+  
+      const daysInMonth = new Date(year, month, 0).getDate();
+      if (day < 1 || day > daysInMonth)
+        return err(`Day must be between 01 and ${daysInMonth} for month ${month}`);
+
+      return ok();
+    }
+
+    const validators = {
+      email:    (v) => validateEmail(v),
+      phone:    (v) => validatePhone(v),
+      password: (v) => validatePassword(v),
+      url:      (v) => validateURL(v),
+      date:     (v) => validateDate(v),
+    };
+
+    function runValidator(type) {
+      const input  = document.getElementById(`${type}-input`);
+      const result = document.getElementById(`${type}-result`);
+      const value  = input.value;
+
+      if (value === '') { result.classList.add('hidden'); resetPasswordUI(); return; }
+
+      const res = validators[type](value);
+      renderResult(result, res);
+
+    
+      if (type === 'password') renderPasswordExtras(value, res);
+    }
+
+    function renderResult(el, res) {
+      el.classList.remove('hidden');
+      el.classList.add('fade-in');
+
+      if (res.valid) {
+        el.innerHTML = `
+          <div class="flex items-center gap-2 text-sm mono text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-lg px-3 py-2">
+            <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+            </svg>
+            <span class="font-medium">valid: true</span>
+            <span class="text-emerald-400 ml-1">error: null</span>
+          </div>`;
+      } else {
+        el.innerHTML = `
+          <div class="flex items-start gap-2 text-sm mono text-red-700 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
+            <svg class="w-4 h-4 shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+            </svg>
+            <div>
+              <span class="font-medium">valid: false</span>
+              <span class="text-red-400 block text-xs mt-0.5">error: "${res.error}"</span>
+            </div>
+          </div>`;
+      }
+    }
+
+    function renderPasswordExtras(value, res) {
+      const bar    = document.getElementById('strength-bar');
+      const fill   = document.getElementById('strength-fill');
+      const label  = document.getElementById('strength-label');
+      const rulesEl = document.getElementById('pw-rules');
+
+      if (!value) { bar.classList.add('hidden'); rulesEl.classList.add('hidden'); return; }
+
+      bar.classList.remove('hidden');
+      rulesEl.classList.remove('hidden');
+
+    
+      const rules  = res._rules || [];
+      const passed = rules.filter(r => r.passed).length;
+      const pct    = Math.round((passed / rules.length) * 100);
+
+      const levels = [
+        { min: 0,   max: 20,  color: 'bg-red-400',    text: 'Too weak'  },
+        { min: 21,  max: 40,  color: 'bg-orange-400', text: 'Weak'      },
+        { min: 41,  max: 60,  color: 'bg-yellow-400', text: 'Fair'      },
+        { min: 61,  max: 80,  color: 'bg-lime-400',   text: 'Good'      },
+        { min: 81,  max: 100, color: 'bg-emerald-500',text: 'Strong'    },
+      ];
+
+      const lvl = levels.find(l => pct <= l.max) || levels[levels.length - 1];
+      fill.className = `h-full rounded-full transition-all duration-300 ${lvl.color}`;
+      fill.style.width = pct + '%';
+      label.textContent = `strength: ${lvl.text} (${passed}/${rules.length} rules)`;
+
+      
+      rules.forEach(r => {
+        const li  = rulesEl.querySelector(`[data-rule="${r.id}"]`);
+        const dot = li && li.querySelector('.rule-dot');
+        if (!li) return;
+        if (r.passed) {
+          li.classList.replace('text-stone-400', 'text-emerald-600');
+          dot.className = 'rule-dot w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block';
+        } else {
+          li.classList.remove('text-emerald-600');
+          li.classList.add('text-stone-400');
+          dot.className = 'rule-dot w-1.5 h-1.5 rounded-full bg-stone-300 inline-block';
+        }
+      });
+    }
+
+    function resetPasswordUI() {
+      document.getElementById('strength-bar').classList.add('hidden');
+      document.getElementById('pw-rules').classList.add('hidden');
+    }
+
+  </script>
+</body>
+</html>

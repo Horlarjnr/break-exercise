@@ -1,77 +1,127 @@
-const display = document.getElementById('display');
-const numberButtons = document.querySelectorAll('[data-number]');
-const operatorButtons = document.querySelectorAll('[data-operator]');
-const equalsButton = document.querySelector('[data-equals]');
-const clearButton = document.querySelector('[data-clear]');
-const decimalButton = document.querySelector('[data-decimal]');
+const add       = (a, b) => a + b;
+    const subtract  = (a, b) => a - b;
+    const multiply  = (a, b) => a * b;
+    const divide    = (a, b) => {
+      if (b === 0) throw new Error("Can't divide by zero");
+      return a / b;
+    };
+    const power     = (a, b) => Math.pow(a, b);
+    const squareRoot = (a) => {
+      if (a < 0) throw new Error("√ of a negative number");
+      return Math.sqrt(a);
+    };
+    const factorial = (n) => {
+      const i = Math.round(n);
+      if (i < 0)   throw new Error("Factorial of negative");
+      if (i > 170) throw new Error("Result is too large");
+      if (i <= 1)  return 1;
+      let r = 1;
+      for (let k = 2; k <= i; k++) r *= k;
+      return r;
+    };
+    const logBase10  = (a) => { if (a <= 0) throw new Error("log of non-positive"); return Math.log10(a); };
+    const naturalLog = (a) => { if (a <= 0) throw new Error("ln of non-positive");  return Math.log(a); };
 
-let currentInput = '';
-let previousInput = '';
-let operation = null;
-
-function updateDisplay() {
-    display.value = currentInput || '0';
-}
-
-
-numberButtons.forEach(button => {
-    button.addEventListener('click', () => {
-        if (button.innerText === '0' && currentInput === '0') return;
-        currentInput = currentInput.toString() + button.innerText.toString();
-        updateDisplay();
-    });
-});
-
-
-decimalButton.addEventListener('click', () => {
-    if (currentInput.includes('.')) return;
-    if (currentInput === '') currentInput = '0';
-    currentInput += '.';
-    updateDisplay();
-});
+   
+    const selectOp = (sym) =>
+      ({ '+': add, '−': subtract, '×': multiply, '÷': divide, 'pow': power }[sym] ?? null);
 
 
-operatorButtons.forEach(button => {
-    button.addEventListener('click', () => {
-        if (currentInput === '') return;
-        if (previousInput !== '') calculate();
-        
-        operation = button.innerText;
-        previousInput = currentInput;
-        currentInput = '';
-    });
-});
+    const fmt = (n) => {
+      if (!isFinite(n)) return 'Infinity';
+      const s = parseFloat(n.toPrecision(10)).toString();
+      return s.length > 14 ? n.toExponential(5) : s;
+    };
 
 
-function calculate() {
-    let computation;
-    const prev = parseFloat(previousInput);
-    const current = parseFloat(currentInput);
-    
-    if (isNaN(prev) || isNaN(current)) return;
+    let current = '0', prev = null, operator = null, awaitNext = false;
 
-    switch (operation) {
-        case '+': computation = prev + current; break;
-        case '-': computation = prev - current; break;
-        case '*': computation = prev * current; break;
-        case '/': 
-            computation = current === 0 ? 'Error' : prev / current; 
-            break;
-        default: return;
+    const $main  = document.getElementById('main');
+    const $expr  = document.getElementById('expr');
+    const $error = document.getElementById('error');
+
+    const render   = ()  => { $main.textContent = current; };
+    const setExpr  = (s) => { $expr.textContent = s; };
+    const setError = (s) => { $error.textContent = s; };
+    const clearErr = ()  => { $error.textContent = ''; };
+
+    const reset = () => {
+      current = '0'; prev = null; operator = null; awaitNext = false;
+      setExpr(''); clearErr(); render();
+    };
+
+
+    const pushDigit = (d) => {
+      clearErr();
+      current = awaitNext ? d : (current === '0' ? d : current + d);
+      awaitNext = false;
+      render();
+    };
+
+    const pushDot = () => {
+      if (awaitNext) { current = '0.'; awaitNext = false; render(); return; }
+      if (!current.includes('.')) { current += '.'; render(); }
+    };
+
+    const pushBinaryOp = (sym) => {
+      clearErr();
+      const val = parseFloat(current);
+      if (prev !== null && !awaitNext) {
+        try {
+          const result = selectOp(operator)(prev, val);
+          setExpr(fmt(prev) + ' ' + operator + ' ' + fmt(val) + ' =');
+          current = fmt(result); prev = result; render();
+        } catch (e) { setError(e.message); prev = val; }
+      } else { prev = val; }
+      operator = sym; awaitNext = true;
+      if (!$error.textContent) setExpr(fmt(prev) + ' ' + sym);
+    };
+
+    const pushEquals = () => {
+      clearErr();
+      if (prev === null || !operator) return;
+      const val = parseFloat(current);
+      try {
+        const result = selectOp(operator)(prev, val);
+        setExpr(fmt(prev) + ' ' + operator + ' ' + fmt(val) + ' =');
+        current = fmt(result); prev = null; operator = null; awaitNext = true;
+        render();
+      } catch (e) { setError(e.message); }
+    };
+
+    const pushUnary = (sym) => {
+      clearErr();
+      const val = parseFloat(current);
+      const fns = { sqrt: squareRoot, fact: factorial, log: logBase10, ln: naturalLog };
+      const labels = { sqrt: '√', fact: '!', log: 'log', ln: 'ln' };
+      try {
+        const result = fns[sym](val);
+        setExpr(sym === 'fact' ? val + '!' : labels[sym] + '(' + val + ') =');
+        current = fmt(result); awaitNext = true; render();
+      } catch (e) { setError(e.message); }
+    };
+
+    const toggleSign = () => {
+      const n = parseFloat(current);
+      if (!isNaN(n) && n !== 0) { current = fmt(-n); render(); }
+    };
+
+
+    function op(key) {
+      if (key === 'AC') { reset(); return; }
+      if (key === 'pm') { toggleSign(); return; }
+      if (key >= '0' && key <= '9') { pushDigit(key); return; }
+      if (key === '.') { pushDot(); return; }
+      if (['+', '−', '×', '÷', 'pow'].includes(key)) { pushBinaryOp(key); return; }
+      if (key === '=') { pushEquals(); return; }
+      if (['sqrt', 'fact', 'log', 'ln'].includes(key)) { pushUnary(key); return; }
     }
 
-    currentInput = computation.toString();
-    operation = undefined;
-    previousInput = '';
-    updateDisplay();
-}
-
-equalsButton.addEventListener('click', calculate);
-
-
-clearButton.addEventListener('click', () => {
-    currentInput = '';
-    previousInput = '';
-    operation = null;
-    updateDisplay();
-});
+  
+    document.addEventListener('keydown', (e) => {
+      const map = { 'Enter':'=', '/':'÷', '*':'×', '-':'−', '+':'+', Escape:'AC', Backspace:'AC' };
+      const k = map[e.key] ?? e.key;
+      if ('0123456789.'.includes(k) || ['+','−','×','÷','=','AC'].includes(k)) {
+        e.preventDefault(); op(k);
+      }
+    });

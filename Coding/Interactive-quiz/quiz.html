@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>QUIZ.EXE</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@600;900&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --green: #00ff9d;
+      --green-dim: #00b36e;
+      --green-dark: #003d26;
+      --amber: #ffb800;
+      --red: #ff4545;
+      --bg: #0a0f0a;
+      --surface: #0f180f;
+      --border: #1a3320;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Share Tech Mono', monospace;
+      background: var(--bg);
+      color: var(--green);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 1.5rem;
+      position: relative;
+      overflow-x: hidden;
+    }
+
+ 
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background: repeating-linear-gradient(
+        0deg, transparent, transparent 2px,
+        rgba(0,0,0,0.07) 2px, rgba(0,0,0,0.07) 4px
+      );
+      pointer-events: none;
+      z-index: 99;
+    }
+   
+    body::after {
+      content: '';
+      position: fixed; inset: 0;
+      background-image:
+        linear-gradient(rgba(0,255,157,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,255,157,0.03) 1px, transparent 1px);
+      background-size: 40px 40px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .screen {
+      width: 100%; max-width: 640px;
+      position: relative; z-index: 1;
+    }
+
+  
+    .panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 2rem;
+      position: relative;
+    }
+    .panel::before {
+      content: '';
+      position: absolute; top: 0; left: 0; right: 0; height: 1px;
+      background: linear-gradient(90deg, transparent, var(--green), transparent);
+      opacity: 0.5;
+    }
+
+    .title {
+      font-family: 'Orbitron', sans-serif;
+      color: var(--green);
+      letter-spacing: 0.12em;
+      line-height: 1;
+    }
+
+   
+    .cursor::after {
+      content: '▊';
+      animation: blink 1.1s step-end infinite;
+      color: var(--green);
+    }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+
+  
+    #progress-track {
+      height: 4px;
+      background: var(--border);
+      border-radius: 2px;
+      overflow: hidden;
+    }
+    #progress-fill {
+      height: 100%;
+      background: var(--green);
+      border-radius: 2px;
+      transition: width 0.4s cubic-bezier(.4,0,.2,1);
+      box-shadow: 0 0 8px var(--green);
+    }
+
+    
+    #timer-arc {
+      transition: stroke-dashoffset 1s linear;
+      transform-origin: center;
+      transform: rotate(-90deg);
+    }
+
+
+    .option-btn {
+      width: 100%;
+      text-align: left;
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--green);
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.85rem;
+      padding: 0.75rem 1rem;
+      border-radius: 3px;
+      cursor: pointer;
+      transition: background 0.15s, border-color 0.15s, color 0.15s;
+      position: relative;
+      line-height: 1.5;
+    }
+    .option-btn:hover:not(:disabled) {
+      background: rgba(0,255,157,0.06);
+      border-color: var(--green-dim);
+    }
+    .option-btn.correct {
+      background: rgba(0,255,157,0.12);
+      border-color: var(--green);
+      color: var(--green);
+    }
+    .option-btn.wrong {
+      background: rgba(255,69,69,0.1);
+      border-color: var(--red);
+      color: var(--red);
+    }
+    .option-btn.reveal {
+      background: rgba(0,255,157,0.06);
+      border-color: var(--green-dim);
+      color: var(--green-dim);
+    }
+
+
+    .btn-primary {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 0.75rem;
+      letter-spacing: 0.1em;
+      background: var(--green);
+      color: var(--bg);
+      border: none;
+      padding: 0.75rem 2rem;
+      border-radius: 3px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: opacity 0.15s, transform 0.1s;
+    }
+    .btn-primary:hover { opacity: 0.88; transform: translateY(-1px); }
+    .btn-primary:active { transform: scale(0.97); }
+
+
+    .review-item {
+      border-left: 3px solid var(--border);
+      padding-left: 1rem;
+    }
+    .review-item.correct-item { border-color: var(--green); }
+    .review-item.wrong-item   { border-color: var(--red); }
+
+   
+    #score-ring-fill { transition: stroke-dashoffset 1.2s cubic-bezier(.4,0,.2,1); }
+
+  
+    .slide-enter { animation: slideIn 0.25s ease; }
+    @keyframes slideIn { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:none; } }
+
+
+    .flash-correct { animation: flashGreen 0.4s ease; }
+    .flash-wrong   { animation: flashRed   0.4s ease; }
+    @keyframes flashGreen { 0%,100%{background:var(--surface)} 40%{background:rgba(0,255,157,0.08)} }
+    @keyframes flashRed   { 0%,100%{background:var(--surface)} 40%{background:rgba(255,69,69,0.08)} }
+
+    ::-webkit-scrollbar { width:6px; }
+    ::-webkit-scrollbar-track { background:var(--bg); }
+    ::-webkit-scrollbar-thumb { background:var(--border); border-radius:3px; }
+  </style>
+</head>
+<body>
+
+
+<div class="screen" id="screen-start">
+  <div class="panel slide-enter">
+    <div class="text-center mb-8">
+      <div class="title text-4xl mb-1">QUIZ.EXE</div>
+      <div style="color:var(--green-dim)" class="text-xs mt-2 tracking-widest">JAVASCRIPT &amp; TECH TRIVIA // v2.0</div>
+    </div>
+
+    <div class="space-y-3 mb-8 text-sm" style="color:var(--green-dim)">
+      <div class="flex justify-between border-b pb-2" style="border-color:var(--border)">
+        <span>QUESTIONS</span><span style="color:var(--green)">10</span>
+      </div>
+      <div class="flex justify-between border-b pb-2" style="border-color:var(--border)">
+        <span>TIME / QUESTION</span><span style="color:var(--amber)">15 sec</span>
+      </div>
+      <div class="flex justify-between">
+        <span>BEST SCORE</span>
+        <span id="start-best" style="color:var(--green)">—</span>
+      </div>
+    </div>
+
+    <div class="text-center">
+      <button class="btn-primary" onclick="startQuiz()">▶ BOOT QUIZ</button>
+    </div>
+  </div>
+</div>
+
+
+<div class="screen hidden" id="screen-quiz">
+  <div class="panel">
+
+
+    <div class="flex items-center justify-between mb-4">
+      <div class="text-xs" style="color:var(--green-dim)">
+        Q <span id="q-num">1</span><span style="color:var(--border)">/10</span>
+      </div>
+
+
+      <div class="relative flex items-center justify-center" style="width:44px;height:44px">
+        <svg width="44" height="44" viewBox="0 0 44 44">
+          <circle cx="22" cy="22" r="18" fill="none" stroke="var(--border)" stroke-width="2.5"/>
+          <circle id="timer-arc" cx="22" cy="22" r="18" fill="none"
+            stroke="var(--green)" stroke-width="2.5"
+            stroke-linecap="round"
+            stroke-dasharray="113.1"
+            stroke-dashoffset="0"/>
+        </svg>
+        <span id="timer-text" class="absolute text-xs font-bold" style="color:var(--green)">15</span>
+      </div>
+
+      <div class="text-xs" style="color:var(--green-dim)">
+        SCORE <span id="live-score" style="color:var(--green)">0</span>
+      </div>
+    </div>
+
+ 
+    <div id="progress-track" class="mb-5">
+      <div id="progress-fill" style="width:0%"></div>
+    </div>
+
+
+    <div id="question-box" class="mb-5">
+      <div id="category-tag" class="text-xs mb-2 tracking-widest" style="color:var(--amber)">JAVASCRIPT</div>
+      <div id="question-text" class="text-sm leading-relaxed" style="font-size:0.95rem"></div>
+    </div>
+
+
+    <div id="options-box" class="space-y-2"></div>
+
+   
+    <div id="feedback" class="hidden mt-4 text-sm p-3 rounded" style="background:rgba(0,0,0,0.3); border:1px solid var(--border)">
+      <span id="feedback-icon" class="mr-1"></span>
+      <span id="feedback-text"></span>
+    </div>
+
+
+    <div class="mt-5 text-right hidden" id="next-wrap">
+      <button class="btn-primary text-xs" onclick="nextQuestion()">NEXT ▶</button>
+    </div>
+
+  </div>
+</div>
+
+
+<div class="screen hidden" id="screen-results">
+  <div class="panel slide-enter">
+
+
+    <div class="text-center mb-6">
+      <div class="title text-lg mb-4 tracking-widest" style="color:var(--green-dim)">MISSION COMPLETE</div>
+      <div class="relative inline-flex items-center justify-center" style="width:120px;height:120px">
+        <svg width="120" height="120" viewBox="0 0 120 120">
+          <circle cx="60" cy="60" r="50" fill="none" stroke="var(--border)" stroke-width="6"/>
+          <circle id="score-ring-fill" cx="60" cy="60" r="50" fill="none"
+            stroke="var(--green)" stroke-width="6"
+            stroke-linecap="round"
+            stroke-dasharray="314.16"
+            stroke-dashoffset="314.16"
+            style="transform:rotate(-90deg);transform-origin:center"/>
+        </svg>
+        <div class="absolute text-center">
+          <div class="title text-3xl" id="final-score">0</div>
+          <div class="text-xs" style="color:var(--green-dim)">/ 10</div>
+        </div>
+      </div>
+      <div class="mt-3 text-xs" style="color:var(--green-dim)" id="result-msg"></div>
+      <div class="mt-1 text-xs" style="color:var(--amber)" id="best-score-line"></div>
+    </div>
+
+    <div class="mb-6 space-y-3 max-h-72 overflow-y-auto pr-1" id="review-list"></div>
+
+    <div class="text-center">
+      <button class="btn-primary" onclick="restartQuiz()">↺ RETRY</button>
+    </div>
+  </div>
+</div>
+
+
+<script>
+const QUESTIONS = [
+  {
+    category: 'JAVASCRIPT',
+    q: 'What does `typeof null` return in JavaScript?',
+    options: ['"null"', '"undefined"', '"object"', '"boolean"'],
+    answer: 2,
+    explain: 'A historical bug in JS — null has type tag 0, same as objects.'
+  },
+  {
+    category: 'JAVASCRIPT',
+    q: 'Which method removes and returns the last element of an array?',
+    options: ['shift()', 'pop()', 'splice()', 'slice()'],
+    answer: 1,
+    explain: 'pop() removes from the end; shift() removes from the front.'
+  },
+  {
+    category: 'JAVASCRIPT',
+    q: 'What is the output of `0.1 + 0.2 === 0.3` in JavaScript?',
+    options: ['true', 'false', 'NaN', 'undefined'],
+    answer: 1,
+    explain: 'Floating-point precision: 0.1+0.2 = 0.30000000000000004.'
+  },
+  {
+    category: 'JS CONCEPTS',
+    q: 'What does "hoisting" mean in JavaScript?',
+    options: [
+      'Moving imports to the top of the file',
+      'Declarations are moved to the top of their scope before execution',
+      'A method for sorting arrays',
+      'Async functions run before sync ones'
+    ],
+    answer: 1,
+    explain: 'var declarations and function declarations are hoisted to the top of their scope.'
+  },
+  {
+    category: 'WEB APIs',
+    q: 'Which HTTP status code means "Not Found"?',
+    options: ['200', '403', '404', '500'],
+    answer: 2,
+    explain: '404 = Not Found. 403 = Forbidden. 500 = Internal Server Error.'
+  },
+  {
+    category: 'CSS',
+    q: 'In CSS, which property controls the stacking order of elements?',
+    options: ['stack-order', 'z-index', 'layer', 'depth'],
+    answer: 1,
+    explain: 'z-index controls the stacking context; higher values appear on top.'
+  },
+  {
+    category: 'JAVASCRIPT',
+    q: 'What does the `===` operator check compared to `==`?',
+    options: [
+      'It checks value only',
+      'It checks type only',
+      'It checks both value AND type (strict equality)',
+      'It is identical to =='
+    ],
+    answer: 2,
+    explain: '=== is strict: `1 === "1"` is false. == coerces types: `1 == "1"` is true.'
+  },
+  {
+    category: 'GENERAL TECH',
+    q: 'What does "DNS" stand for?',
+    options: [
+      'Dynamic Network System',
+      'Domain Name System',
+      'Distributed Node Service',
+      'Data Network Standard'
+    ],
+    answer: 1,
+    explain: 'DNS translates human-readable domain names into IP addresses.'
+  },
+  {
+    category: 'JS CONCEPTS',
+    q: 'Which of these correctly creates a Promise that resolves immediately?',
+    options: [
+      'new Promise(resolve)',
+      'Promise.resolve()',
+      'Promise.done()',
+      'async resolve()'
+    ],
+    answer: 1,
+    explain: 'Promise.resolve() returns a Promise object resolved with a given value.'
+  },
+  {
+    category: 'JAVASCRIPT',
+    q: 'What is a "closure" in JavaScript?',
+    options: [
+      'A way to close a browser tab',
+      'A function bundled together with references to its surrounding lexical scope',
+      'A method that terminates a loop',
+      'A CSS technique for hiding elements'
+    ],
+    answer: 1,
+    explain: 'Closures let inner functions access outer function variables even after the outer function has returned.'
+  }
+];
+
+const TIMER_SECS = 15;
+const CIRCUMFERENCE = 113.1; 
+let current = 0;
+let score = 0;
+let answers = [];
+let timerInterval = null;
+let timeLeft = TIMER_SECS;
+let answered = false;
+
+function getBest()  { return parseInt(localStorage.getItem('quiz_best') ?? '-1', 10); }
+function setBest(s) { localStorage.setItem('quiz_best', s); }
+
+
+const show = (id) => {
+  ['screen-start','screen-quiz','screen-results'].forEach(s => {
+    document.getElementById(s).classList.toggle('hidden', s !== id);
+  });
+};
+
+(function initStart() {
+  const best = getBest();
+  document.getElementById('start-best').textContent = best >= 0 ? best + ' / 10' : '—';
+})();
+
+
+function startQuiz() {
+  current = 0; score = 0; answers = [];
+  show('screen-quiz');
+  loadQuestion();
+}
+
+
+function loadQuestion() {
+  answered = false;
+  const q = QUESTIONS[current];
+
+  document.getElementById('q-num').textContent = current + 1;
+  document.getElementById('live-score').textContent = score;
+  document.getElementById('progress-fill').style.width = (current / QUESTIONS.length * 100) + '%';
+  document.getElementById('category-tag').textContent = q.category;
+  document.getElementById('question-text').textContent = q.q;
+  document.getElementById('feedback').classList.add('hidden');
+  document.getElementById('next-wrap').classList.add('hidden');
+
+  const box = document.getElementById('options-box');
+  box.innerHTML = '';
+  const letters = ['A', 'B', 'C', 'D'];
+  q.options.forEach((opt, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'option-btn';
+    btn.dataset.idx = i;
+    btn.innerHTML = `<span style="color:var(--green-dim);margin-right:0.6rem">${letters[i]}.</span>${opt}`;
+    btn.onclick = () => selectAnswer(i);
+    box.appendChild(btn);
+  });
+
+
+  document.getElementById('question-box').classList.remove('slide-enter');
+  void document.getElementById('question-box').offsetWidth;
+  document.getElementById('question-box').classList.add('slide-enter');
+
+  startTimer();
+}
+
+
+function startTimer() {
+  clearInterval(timerInterval);
+  timeLeft = TIMER_SECS;
+  updateTimerUI(timeLeft);
+
+  timerInterval = setInterval(() => {
+    timeLeft--;
+    updateTimerUI(timeLeft);
+    if (timeLeft <= 0) {
+      clearInterval(timerInterval);
+      if (!answered) timeUp();
+    }
+  }, 1000);
+}
+
+function updateTimerUI(t) {
+  const pct = t / TIMER_SECS;
+  const offset = CIRCUMFERENCE * (1 - pct);
+  const arc = document.getElementById('timer-arc');
+  const txt = document.getElementById('timer-text');
+  arc.style.strokeDashoffset = offset;
+  txt.textContent = t;
+  arc.style.stroke = t <= 5 ? 'var(--red)' : t <= 10 ? 'var(--amber)' : 'var(--green)';
+  txt.style.color  = t <= 5 ? 'var(--red)' : t <= 10 ? 'var(--amber)' : 'var(--green)';
+}
+
+function timeUp() {
+  answered = true;
+  revealAnswer(null);
+  showFeedback(false, '⏱ Time\'s up! — ' + QUESTIONS[current].explain);
+  answers.push({ chosen: null, correct: QUESTIONS[current].answer });
+  document.getElementById('next-wrap').classList.remove('hidden');
+}
+
+
+function selectAnswer(idx) {
+  if (answered) return;
+  answered = true;
+  clearInterval(timerInterval);
+
+  const q = QUESTIONS[current];
+  const isCorrect = idx === q.answer;
+  if (isCorrect) score++;
+
+  answers.push({ chosen: idx, correct: q.answer });
+  revealAnswer(idx);
+  showFeedback(isCorrect, isCorrect ? '✓ Correct! — ' + q.explain : '✗ Wrong. — ' + q.explain);
+
+  const panel = document.querySelector('#screen-quiz .panel');
+  panel.classList.remove('flash-correct', 'flash-wrong');
+  void panel.offsetWidth;
+  panel.classList.add(isCorrect ? 'flash-correct' : 'flash-wrong');
+
+  document.getElementById('live-score').textContent = score;
+  document.getElementById('next-wrap').classList.remove('hidden');
+}
+
+function revealAnswer(chosen) {
+  const btns = document.querySelectorAll('.option-btn');
+  const correct = QUESTIONS[current].answer;
+  btns.forEach(btn => {
+    btn.disabled = true;
+    const i = parseInt(btn.dataset.idx);
+    if (i === correct) btn.classList.add('correct');
+    else if (i === chosen) btn.classList.add('wrong');
+    else btn.classList.add('reveal');
+  });
+}
+
+function showFeedback(ok, msg) {
+  const fb = document.getElementById('feedback');
+  const icon = document.getElementById('feedback-icon');
+  const text = document.getElementById('feedback-text');
+  fb.classList.remove('hidden');
+  fb.style.borderColor = ok ? 'var(--green-dim)' : 'var(--red)';
+  icon.textContent = ok ? '✓' : '✗';
+  icon.style.color = ok ? 'var(--green)' : 'var(--red)';
+  text.textContent = msg;
+  text.style.color = 'var(--green-dim)';
+}
+
+
+function nextQuestion() {
+  current++;
+  if (current >= QUESTIONS.length) showResults();
+  else loadQuestion();
+}
+
+
+function showResults() {
+  show('screen-results');
+
+  document.getElementById('final-score').textContent = score;
+
+  const msgs = ['SYSTEM ERROR', 'POOR SIGNAL', 'BELOW AVERAGE', 'AVERAGE', 'GOOD JOB', 'EXCELLENT', 'FLAWLESS'];
+  const idx = Math.min(Math.floor(score / 10 * (msgs.length - 1)), msgs.length - 1);
+  document.getElementById('result-msg').textContent = msgs[idx] + ' — ' + score + '/10 correct';
+
+
+  const best = getBest();
+  const isNew = score > best;
+  if (isNew) setBest(score);
+  document.getElementById('best-score-line').textContent =
+    isNew ? '★ NEW BEST SCORE!' : 'BEST: ' + Math.max(best, score) + ' / 10';
+
+
+  const pct = score / QUESTIONS.length;
+  const circumference = 314.16;
+  const offset = circumference * (1 - pct);
+  setTimeout(() => {
+    document.getElementById('score-ring-fill').style.strokeDashoffset = offset;
+    document.getElementById('score-ring-fill').style.stroke =
+      pct >= 0.8 ? 'var(--green)' : pct >= 0.5 ? 'var(--amber)' : 'var(--red)';
+  }, 100);
+
+
+  const list = document.getElementById('review-list');
+  list.innerHTML = '';
+  QUESTIONS.forEach((q, i) => {
+    const a = answers[i];
+    const isCorrect = a.chosen === a.correct;
+    const letters = ['A', 'B', 'C', 'D'];
+    const div = document.createElement('div');
+    div.className = 'review-item ' + (isCorrect ? 'correct-item' : 'wrong-item');
+    div.innerHTML = `
+      <div class="text-xs mb-1" style="color:${isCorrect ? 'var(--green)' : 'var(--red)'}">
+        ${isCorrect ? '✓' : '✗'} Q${i+1}: <span style="color:var(--green-dim)">${q.category}</span>
+      </div>
+      <div class="text-xs mb-1" style="color:var(--green-dim); font-size:0.75rem">${q.q}</div>
+      ${!isCorrect ? `<div class="text-xs" style="color:var(--red); font-size:0.72rem">
+        Your answer: ${a.chosen !== null ? letters[a.chosen] + '. ' + q.options[a.chosen] : 'No answer (timeout)'}
+      </div>` : ''}
+      <div class="text-xs" style="color:var(--green); font-size:0.72rem">
+        Correct: ${letters[a.correct]}. ${q.options[a.correct]}
+      </div>`;
+    list.appendChild(div);
+  });
+}
+
+
+function restartQuiz() {
+  show('screen-start');
+  document.getElementById('start-best').textContent = getBest() + ' / 10';
+}
+</script>
+</body>
+</html>
